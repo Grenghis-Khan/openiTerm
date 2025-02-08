@@ -3,20 +3,38 @@ on run {input, parameters}
 		set myPath to (POSIX path of (target of front window as alias))
 	end tell
 	
-	tell application "iTerm"
-		activate
-		delay 0.2
-		if not (exists window 1) then
-			create window with default profile
-		end if
-		
-		delay 0.2
-		
-		tell current session of current window
-			write text "cd " & quoted form of myPath
+	if application "iTerm" is not running then
+		-- iTerm not running: start it
+		tell application "iTerm"
+			activate
+			delay 0.2
+			tell current session of current window
+				write text "cd " & quoted form of myPath
+			end tell
 		end tell
-	end tell
+	else
+		-- iTerm is running
+		tell application "iTerm"
+			activate
+			delay 0.2
+			
+			if (exists window 1) is false then
+				-- No windows: create one
+				create window with default profile
+				tell current session of current window
+					write text "cd " & quoted form of myPath
+				end tell
+			else
+				-- Window exists: create new tab
+				tell current window
+					create tab with default profile
+					tell current session
+						write text "cd " & quoted form of myPath
+					end tell
+				end tell
+			end if
+		end tell
+	end if
 	
 	return input
 end run
-
